@@ -1,5 +1,5 @@
 -- You can define your global state here
-local main_ratio = 0.4
+local main_ratio = 0.65
 local gaps = 10
 local smart_gaps = false
 
@@ -18,9 +18,6 @@ local smart_gaps = false
 --  * Window width
 --  * Window height
 function handle_layout(args)
-	local side_w = args.width * main_ratio
-	local main_h = args.height - gaps * 2
-	local main_w = args.width - gaps * 3 - side_w
 	local retval = {}
 	if args.count == 1 then
 		if smart_gaps then
@@ -29,11 +26,14 @@ function handle_layout(args)
 			table.insert(retval, { gaps, gaps, args.width - gaps * 2, args.height - gaps * 2 })
 		end
 	elseif args.count > 1 then
+		local main_w = (args.width - gaps * 3) * main_ratio
+		local side_w = (args.width - gaps * 3) - main_w
+		local main_h = args.height - gaps * 2
 		local side_h = (args.height - gaps) / (args.count - 1) - gaps
 		table.insert(retval, {
 			gaps,
 			gaps,
-			args.width - gaps * 3 - side_w,
+			main_w,
 			main_h,
 		})
 		for i = 0, (args.count - 2) do
@@ -51,9 +51,13 @@ end
 -- Handle `riverctl send-layout-cmd` events (optional)
 function handle_user_cmd(cmd)
 	if cmd == "main_ratio++" then
-		main_ratio = math.min(0.9, main_ratio + 0.05)
+		main_ratio = math.min(0.9, main_ratio + 0.005)
 	elseif cmd == "main_ratio--" then
-		main_ratio = math.max(0.1, main_ratio - 0.05)
+		main_ratio = math.max(0.1, main_ratio - 0.005)
+	elseif cmd == "gaps++" then
+		gaps = gaps + 2
+	elseif cmd == "gaps--" then
+		gaps = math.max(0, gaps - 2)
 	elseif cmd == "smart_gaps on" then
 		smart_gaps = true
 	elseif cmd == "smart_gaps off" then
