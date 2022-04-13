@@ -4,11 +4,19 @@ local gaps = 10
 local smart_gaps = false
 
 -- The most important function - the actual layout generator
+--
 -- The argument is a table with:
---  * Tags
---  * Count
---  * Width
---  * Height
+--  * Focused tags
+--  * Window count
+--  * Output width
+--  * Output height
+--
+-- The return value must be a table with exactly `count` entries. Each entry is a table with four
+-- numbers:
+--  * X coordinate
+--  * Y coordinate
+--  * Window width
+--  * Window height
 function handle_layout(args)
 	local side_w = args.width * main_ratio
 	local main_h = args.height - gaps * 2
