@@ -1,0 +1,19 @@
+[package]
+name = "river-luatile"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wayland-commons = "0.29"
+dirs-next = "2.0"
+
+[dependencies.mlua]
+version = "0.7"
+features = ["luajit"]
+
+[dependencies.sctk]
+package = "smithay-client-toolkit"
+version = "0.15"
+
+[build-dependencies]
+wayland-scanner = "0.29"
