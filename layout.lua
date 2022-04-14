@@ -1,7 +1,7 @@
 -- You can define your global state here
-local main_ratio = 0.65
-local gaps = 10
-local smart_gaps = false
+main_ratio = 0.65
+gaps = 10
+smart_gaps = false
 
 -- The most important function - the actual layout generator
 --
@@ -17,6 +17,8 @@ local smart_gaps = false
 --  * Y coordinate
 --  * Window width
 --  * Window height
+--
+-- This example is a simplified version of `rivertile`
 function handle_layout(args)
 	local retval = {}
 	if args.count == 1 then
@@ -48,19 +50,13 @@ function handle_layout(args)
 	return retval
 end
 
--- Handle `riverctl send-layout-cmd` events (optional)
-function handle_user_cmd(cmd)
-	if cmd == "main_ratio++" then
-		main_ratio = math.min(0.9, main_ratio + 0.005)
-	elseif cmd == "main_ratio--" then
-		main_ratio = math.max(0.1, main_ratio - 0.005)
-	elseif cmd == "gaps++" then
-		gaps = gaps + 2
-	elseif cmd == "gaps--" then
-		gaps = math.max(0, gaps - 2)
-	elseif cmd == "smart_gaps on" then
-		smart_gaps = true
-	elseif cmd == "smart_gaps off" then
-		smart_gaps = false
-	end
+-- IMPORTANT: User commands send via `riverctl send-layout-cmd` are treated as lua code
+
+-- Here is an example of a function that can be mapped to some key
+-- Run with `riverctl send-layout-cmd luatile "toggle_gaps()"`
+local gaps_alt = 0
+function toggle_gaps()
+	local tmp = gaps
+	gaps = gaps_alt
+	gaps_alt = tmp
 end

@@ -63,8 +63,8 @@ impl LuaLayout {
     }
 
     pub fn handle_user_cmd(&self, cmd: String) {
-        if let Ok(handler) = self.lua.globals().get::<_, LuaFunction>("handle_user_cmd") {
-            let _: () = handler.call(cmd).unwrap();
+        if let Err(error) = self.lua.load(&cmd).exec() {
+            eprintln!("handle_user_cmd error: {error}");
         }
     }
 }
