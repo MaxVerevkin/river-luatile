@@ -32,40 +32,47 @@ impl LuaLayout {
         count: u32,
         width: u32,
         height: u32,
-    ) -> Vec<(i32, i32, u32, u32)> {
-        // that's... 12 unwrap()s in one place...
-        let args = self.lua.create_table().unwrap();
-        args.set("tags", tags).unwrap();
-        args.set("count", count).unwrap();
-        args.set("width", width).unwrap();
-        args.set("height", height).unwrap();
-        let handler = self
+    ) -> LuaResult<Vec<(i32, i32, u32, u32)>> {
+        let args = self.lua.create_table()?;
+        args.set("tags", tags)?;
+        args.set("count", count)?;
+        args.set("width", width)?;
+        args.set("height", height)?;
+
+        let layout = self
             .lua
             .globals()
-            .get::<_, LuaFunction>("handle_layout")
-            .unwrap();
-        let layouts = handler
-            .call::<_, LuaTable>(args)
-            .unwrap()
-            .pairs::<u32, LuaTable>();
-        let mut retval = Vec::new();
-        for layout in layouts {
-            let (_, layout) = layout.unwrap();
-            let mut layout = layout.sequence_values();
+            .get::<_, LuaFunction>("handle_layout")?
+            .call::<_, LuaTable>(args)?;
+        let generated_count = layout.len()?;
+        if generated_count != count as i64 {
+            return Err(LuaError::RuntimeError(format!(
+                "expected table of size {count}, got {generated_count}"
+            )));
+        }
+
+        let mut retval = Vec::with_capacity(count as usize);
+        for view_geometry in layout.sequence_values::<LuaTable>() {
+            let view_geometry = view_geometry?;
+            let table_len = view_geometry.len()?;
+            if table_len != 4 {
+                return Err(LuaError::RuntimeError(format!(
+                    "expected table of size 4, got {table_len}"
+                )));
+            }
+            let mut it = view_geometry.sequence_values::<i32>();
             retval.push((
-                layout.next().unwrap().unwrap(),
-                layout.next().unwrap().unwrap(),
-                layout.next().unwrap().unwrap() as u32,
-                layout.next().unwrap().unwrap() as u32,
+                it.next().unwrap()?,
+                it.next().unwrap()?,
+                it.next().unwrap()? as u32,
+                it.next().unwrap()? as u32,
             ));
         }
-        retval
+        Ok(retval)
     }
 
-    pub fn handle_user_cmd(&self, cmd: String) {
-        if let Err(error) = self.lua.load(&cmd).exec() {
-            eprintln!("handle_user_cmd error: {error}");
-        }
+    pub fn handle_user_cmd(&self, cmd: &str) -> LuaResult<()> {
+        self.lua.load(cmd).exec()
     }
 }
 

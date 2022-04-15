@@ -4,16 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+log = "0.4"
+env_logger = "0.9"
 wayland-commons = "0.29"
 dirs-next = "2.0"
-
-[dependencies.mlua]
-version = "0.7"
-features = ["luajit"]
-
-[dependencies.sctk]
-package = "smithay-client-toolkit"
-version = "0.15"
+mlua = { version = "0.7", features = ["luajit"] }
+sctk = { version = "0.15", package = "smithay-client-toolkit" }
 
 [build-dependencies]
 wayland-scanner = "0.29"
