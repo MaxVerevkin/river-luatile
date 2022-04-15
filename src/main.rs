@@ -155,9 +155,9 @@ impl Layouts {
     }
 
     fn remove(&self, output_id: u32) {
-        info!("Destroying RiverLayout object for output {output_id}");
         self.layouts.borrow_mut().retain(|(id, layout)| {
             if *id == output_id {
+                info!("Destroying RiverLayout object for output {output_id}");
                 layout.destroy();
                 false
             } else {
