@@ -19,7 +19,10 @@ impl LuaLayout {
                 buf = read_to_string(path).unwrap();
                 &buf
             }
-            None => DEFAULT_LAYOUT,
+            None => {
+                info!("layout.lua not found: using default layout");
+                DEFAULT_LAYOUT
+            }
         };
         let lua = Lua::new();
         lua.load(layout_str).exec().unwrap();
@@ -64,8 +67,14 @@ impl LuaLayout {
             retval.push((
                 it.next().unwrap()?,
                 it.next().unwrap()?,
-                it.next().unwrap()? as u32,
-                it.next().unwrap()? as u32,
+                it.next()
+                    .unwrap()?
+                    .try_into()
+                    .map_err(|_| LuaError::RuntimeError("invalid view width".into()))?,
+                it.next()
+                    .unwrap()?
+                    .try_into()
+                    .map_err(|_| LuaError::RuntimeError("invalid view height".into()))?,
             ));
         }
         Ok(retval)

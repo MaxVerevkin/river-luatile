@@ -19,6 +19,7 @@ use river_layout_manager_v3::RiverLayoutManagerV3 as RiverLayoutManager;
 use river_layout_v3::RiverLayoutV3 as RiverLayout;
 use river_protocols::river_layout_manager_v3;
 use river_protocols::river_layout_v3;
+use river_protocols::river_layout_v3::Event as RiverLayoutEvent;
 
 mod lua_layout;
 use lua_layout::LuaLayout;
@@ -119,11 +120,11 @@ impl Layouts {
             .get_layout(&output, Self::NAMESPACE.to_owned());
         let layouts_handle = self.clone();
         river_layout_obj.quick_assign(move |layout, event, _| match event {
-            river_protocols::river_layout_v3::Event::NamespaceInUse => {
+            RiverLayoutEvent::NamespaceInUse => {
                 error!("Error: namespace '{}' is already in use", Self::NAMESPACE);
                 layouts_handle.remove(output_id);
             }
-            river_protocols::river_layout_v3::Event::LayoutDemand {
+            RiverLayoutEvent::LayoutDemand {
                 view_count,
                 usable_width,
                 usable_height,
@@ -143,7 +144,7 @@ impl Layouts {
                 }
                 Err(e) => error!("Failed to handle layout demand: {e}"),
             },
-            river_protocols::river_layout_v3::Event::UserCommand { command } => {
+            RiverLayoutEvent::UserCommand { command } => {
                 if let Err(e) = layouts_handle.lua.handle_user_cmd(&command) {
                     error!("Failed to handle user command: {e}");
                 }
