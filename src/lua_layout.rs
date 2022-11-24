@@ -84,7 +84,8 @@ impl LuaLayout {
         })
     }
 
-    pub fn handle_user_cmd(&self, cmd: &str) -> LuaResult<()> {
+    pub fn handle_user_cmd(&self, cmd: &str, tags: u32) -> LuaResult<()> {
+        self.lua.globals().set("CMD_TAGS", tags)?;
         self.lua.load(cmd).exec()
     }
 }

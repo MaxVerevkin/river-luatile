@@ -14,7 +14,7 @@ pub mod protocol {
     wayland_scanner::generate_client_code!("protocols/river-layout-v3.xml");
 }
 
-use std::sync::{Arc, Weak};
+use std::sync::atomic::{AtomicU32, Ordering};
 
 use smithay_client_toolkit::globals::GlobalData;
 use wayland_client::globals::GlobalList;
@@ -27,7 +27,6 @@ use protocol::river_layout_v3;
 #[derive(Debug)]
 pub struct RiverLayoutState {
     manager: river_layout_manager_v3::RiverLayoutManagerV3,
-    layouts: Vec<Weak<RiverLayoutInner>>,
 }
 
 impl RiverLayoutState {
@@ -36,8 +35,7 @@ impl RiverLayoutState {
         D: Dispatch<river_layout_manager_v3::RiverLayoutManagerV3, GlobalData> + 'static,
     {
         RiverLayoutState {
-            manager: global_list.bind(qh, 1..=1, GlobalData).unwrap(),
-            layouts: Vec::new(),
+            manager: global_list.bind(qh, 1..=2, GlobalData).unwrap(),
         }
     }
 
@@ -52,23 +50,14 @@ impl RiverLayoutState {
             + Dispatch<river_layout_v3::RiverLayoutV3, RiverLayoutEventData>
             + 'static,
     {
-        let layout = self
-            .manager
-            .get_layout(output, namespace, qh, RiverLayoutEventData {});
-        let layout = RiverLayout(Arc::new(RiverLayoutInner { layout }));
-        self.layouts.push(Arc::downgrade(&layout.0));
-        layout
-    }
-
-    pub fn get_output_layout(
-        &self,
-        layout: &river_layout_v3::RiverLayoutV3,
-    ) -> Option<RiverLayout> {
-        self.layouts
-            .iter()
-            .filter_map(Weak::upgrade)
-            .find(|inner| &inner.layout == layout)
-            .map(RiverLayout)
+        RiverLayout(self.manager.get_layout(
+            output,
+            namespace,
+            qh,
+            RiverLayoutEventData {
+                user_command_tags: Default::default(),
+            },
+        ))
     }
 }
 
@@ -78,7 +67,7 @@ pub struct GeneratedLayout {
     pub dimentions: Vec<(i32, i32, u32, u32)>,
 }
 
-pub trait RiverLayoutHandler: Sized {
+pub trait RiverLayoutHandler {
     fn river_control_state(&mut self) -> &mut RiverLayoutState;
 
     fn namespace_in_use(&mut self);
@@ -91,12 +80,12 @@ pub trait RiverLayoutHandler: Sized {
         tags: u32,
     ) -> GeneratedLayout;
 
-    fn handle_user_cmd(&mut self, cmd: String);
+    fn handle_user_cmd(&mut self, cmd: String, tags: u32);
 }
 
 #[derive(Debug)]
 pub struct RiverLayoutEventData {
-    // This is empty right now, but may be populated in the future.
+    user_command_tags: AtomicU32,
 }
 
 #[macro_export]
@@ -112,16 +101,11 @@ macro_rules! delegate_river_layout {
 }
 
 #[derive(Debug)]
-pub struct RiverLayout(Arc<RiverLayoutInner>);
+pub struct RiverLayout(river_layout_v3::RiverLayoutV3);
 
-#[derive(Debug)]
-struct RiverLayoutInner {
-    layout: river_layout_v3::RiverLayoutV3,
-}
-
-impl Drop for RiverLayoutInner {
+impl Drop for RiverLayout {
     fn drop(&mut self) {
-        self.layout.destroy();
+        self.0.destroy();
     }
 }
 
@@ -153,40 +137,37 @@ where
         data: &mut D,
         layout: &river_layout_v3::RiverLayoutV3,
         event: river_layout_v3::Event,
-        _: &RiverLayoutEventData,
+        event_data: &RiverLayoutEventData,
         _: &Connection,
         _: &QueueHandle<D>,
     ) {
         use river_layout_v3::Event;
 
-        // Remove any layouts that have been dropped
-        data.river_control_state()
-            .layouts
-            .retain(|l| l.upgrade().is_some());
-
-        if let Some(layout) = data.river_control_state().get_output_layout(layout) {
-            match event {
-                Event::NamespaceInUse => {
-                    data.namespace_in_use();
+        match event {
+            Event::NamespaceInUse => {
+                data.namespace_in_use();
+            }
+            Event::LayoutDemand {
+                view_count,
+                usable_width,
+                usable_height,
+                tags,
+                serial,
+            } => {
+                let generated_layout =
+                    data.generate_layout(view_count, usable_width, usable_height, tags);
+                assert_eq!(generated_layout.dimentions.len(), view_count as usize);
+                for (x, y, w, h) in generated_layout.dimentions {
+                    layout.push_view_dimensions(x, y, w, h, serial);
                 }
-                Event::LayoutDemand {
-                    view_count,
-                    usable_width,
-                    usable_height,
-                    tags,
-                    serial,
-                } => {
-                    let generated_layout =
-                        data.generate_layout(view_count, usable_width, usable_height, tags);
-                    assert_eq!(generated_layout.dimentions.len(), view_count as usize);
-                    for (x, y, w, h) in generated_layout.dimentions {
-                        layout.0.layout.push_view_dimensions(x, y, w, h, serial);
-                    }
-                    layout.0.layout.commit(generated_layout.layout_name, serial);
-                }
-                Event::UserCommand { command } => {
-                    data.handle_user_cmd(command);
-                }
+                layout.commit(generated_layout.layout_name, serial);
+            }
+            Event::UserCommand { command } => {
+                let tags = event_data.user_command_tags.load(Ordering::Acquire);
+                data.handle_user_cmd(command, tags);
+            }
+            Event::UserCommandTags { tags } => {
+                event_data.user_command_tags.store(tags, Ordering::Release);
             }
         }
     }

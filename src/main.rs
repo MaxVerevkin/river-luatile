@@ -107,8 +107,8 @@ impl RiverLayoutHandler for State {
             .unwrap()
     }
 
-    fn handle_user_cmd(&mut self, cmd: String) {
-        self.lua.handle_user_cmd(&cmd).unwrap();
+    fn handle_user_cmd(&mut self, cmd: String, tags: u32) {
+        self.lua.handle_user_cmd(&cmd, tags).unwrap();
     }
 }
 
