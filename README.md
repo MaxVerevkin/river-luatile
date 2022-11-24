@@ -7,3 +7,17 @@ See the example (and the default) layout [here](https://github.com/MaxVerevkin/r
 The layout must be located at `$XDG_CONFIG_HOME/river-luatile/layout.lua` or `~/.config/river-luatile/layout.lua`.
 
 The layout namespace (for now) is always `luatile`.
+
+## Installation
+
+### Arch/AUR
+
+<https://aur.archlinux.org/packages/river-luatile-git>
+
+### Manually from source
+
+```sh
+git clone https://github.com/MaxVerevkin/river-luatile
+cd river-luatile
+cargo install --path . --locked
+```
