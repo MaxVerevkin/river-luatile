@@ -2,13 +2,13 @@ use dirs_next::config_dir;
 use mlua::prelude::*;
 use std::fs::read_to_string;
 use std::path::PathBuf;
-use std::rc::Rc;
+
+use crate::river_layout::GeneratedLayout;
 
 const DEFAULT_LAYOUT: &str = include_str!("../layout.lua");
 
-#[derive(Clone)]
 pub struct LuaLayout {
-    lua: Rc<Lua>,
+    lua: Lua,
 }
 
 impl LuaLayout {
@@ -26,16 +26,16 @@ impl LuaLayout {
         };
         let lua = Lua::new();
         lua.load(layout_str).exec().unwrap();
-        Self { lua: Rc::new(lua) }
+        Self { lua }
     }
 
-    pub fn handle_layout(
+    pub fn generate_layout(
         &self,
         tags: u32,
         count: u32,
         width: u32,
         height: u32,
-    ) -> LuaResult<Vec<(i32, i32, u32, u32)>> {
+    ) -> LuaResult<GeneratedLayout> {
         let args = self.lua.create_table()?;
         args.set("tags", tags)?;
         args.set("count", count)?;
@@ -54,7 +54,7 @@ impl LuaLayout {
             )));
         }
 
-        let mut retval = Vec::with_capacity(count as usize);
+        let mut dimentions = Vec::with_capacity(count as usize);
         for view_geometry in layout.sequence_values::<LuaTable>() {
             let view_geometry = view_geometry?;
             let table_len = view_geometry.len()?;
@@ -64,7 +64,7 @@ impl LuaLayout {
                 )));
             }
             let mut it = view_geometry.sequence_values::<i32>();
-            retval.push((
+            dimentions.push((
                 it.next().unwrap()?,
                 it.next().unwrap()?,
                 it.next()
@@ -77,7 +77,11 @@ impl LuaLayout {
                     .map_err(|_| LuaError::RuntimeError("invalid view height".into()))?,
             ));
         }
-        Ok(retval)
+
+        Ok(GeneratedLayout {
+            layout_name: "layout_name".into(), // TODO: this should be configurable
+            dimentions,
+        })
     }
 
     pub fn handle_user_cmd(&self, cmd: &str) -> LuaResult<()> {
@@ -89,5 +93,5 @@ fn lua_layout_path() -> Option<PathBuf> {
     let mut path = config_dir()?;
     path.push("river-luatile");
     path.push("layout.lua");
-    path.exists().then(|| path)
+    path.exists().then_some(path)
 }
