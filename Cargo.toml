@@ -6,10 +6,10 @@ edition = "2021"
 [dependencies]
 log = "0.4"
 env_logger = "0.9"
-wayland-commons = "0.29"
 dirs-next = "2.0"
 mlua = { version = "0.8", features = ["luajit"] }
-smithay-client-toolkit = { git = "https://github.com/Smithay/client-toolkit" }
-wayland-client = "=0.30.0-beta.13"
-wayland-scanner = "=0.30.0-beta.13"
-wayland-backend = "=0.1.0-beta.13"
+river-layout-toolkit = { git = "https://github.com/MaxVerevkin/river-layout-toolkit", rev = "96fb8f7ed8b60221428b30313e866797cf3be06a" }
+
+[profile.release]
+lto = "fat"
+strip = true

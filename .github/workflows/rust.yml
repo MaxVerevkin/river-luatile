@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get required packages
-        run: sudo apt-get install libluajit-5.1-dev libxkbcommon-dev
+        run: sudo apt-get install libluajit-5.1-dev
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
@@ -19,28 +19,12 @@ jobs:
         with:
           command: check
 
-  test:
-    name: Test Suite
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get required packages
-        run: sudo apt-get install libluajit-5.1-dev libxkbcommon-dev
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
       - name: Get required packages
-        run: sudo apt-get install libluajit-5.1-dev libxkbcommon-dev
+        run: sudo apt-get install libluajit-5.1-dev
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
@@ -58,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get required packages
-        run: sudo apt-get install libluajit-5.1-dev libxkbcommon-dev
+        run: sudo apt-get install libluajit-5.1-dev
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:

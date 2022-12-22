@@ -5,94 +5,42 @@
 #[macro_use]
 extern crate log;
 
-use smithay_client_toolkit::{
-    delegate_output, delegate_registry,
-    output::{OutputHandler, OutputState},
-    reexports::client::Connection,
-    registry::{ProvidesRegistryState, RegistryState},
-    registry_handlers,
-};
+use dirs_next::config_dir;
+use mlua::prelude::*;
+use river_layout_toolkit::{run, GeneratedLayout, Layout, Rectangle};
 
-mod river_layout;
-use river_layout::{GeneratedLayout, RiverLayout, RiverLayoutHandler, RiverLayoutState};
+use std::fs::read_to_string;
+use std::path::PathBuf;
+use std::process::ExitCode;
 
-mod lua_layout;
-use lua_layout::LuaLayout;
-use wayland_client::globals::registry_queue_init;
-use wayland_client::protocol::wl_output;
-
-fn main() {
+fn main() -> ExitCode {
     env_logger::init();
 
-    let conn = Connection::connect_to_env().unwrap();
-    let (globals, mut event_queue) = registry_queue_init(&conn).unwrap();
-    let qh = event_queue.handle();
-
-    let mut state = State {
-        registry_state: RegistryState::new(&globals),
-        output_state: OutputState::new(&globals, &qh),
-        river_layout_state: RiverLayoutState::new(&globals, &qh),
-
-        lua: LuaLayout::new(),
-        layouts: Vec::new(),
-    };
-
-    loop {
-        event_queue.blocking_dispatch(&mut state).unwrap();
+    let lua = LuaLayout::new();
+    match run(lua) {
+        Ok(()) => unreachable!(),
+        Err(err) => {
+            error!("{err}");
+            ExitCode::FAILURE
+        }
     }
 }
 
-pub struct State {
-    registry_state: RegistryState,
-    output_state: OutputState,
-    river_layout_state: RiverLayoutState,
+impl Layout for LuaLayout {
+    type Error = LuaError;
 
-    lua: LuaLayout,
-    layouts: Vec<(wl_output::WlOutput, RiverLayout)>,
-}
+    const NAMESPACE: &'static str = "luatile";
 
-impl OutputHandler for State {
-    fn output_state(&mut self) -> &mut OutputState {
-        &mut self.output_state
-    }
+    fn user_cmd(&mut self, cmd: String, tags: Option<u32>, output: Option<&str>) -> LuaResult<()> {
+        self.lua.globals().set("CMD_TAGS", tags)?;
+        self.lua.globals().set("CMD_OUTPUT", output)?;
 
-    fn new_output(
-        &mut self,
-        _: &Connection,
-        qh: &wayland_client::QueueHandle<Self>,
-        output: wl_output::WlOutput,
-    ) {
-        let new_layout = self
-            .river_layout_state
-            .new_layout(qh, &output, "luatile".into());
-        self.layouts.push((output, new_layout));
-    }
+        self.lua.load(&cmd).exec()?;
 
-    fn update_output(
-        &mut self,
-        _: &Connection,
-        _: &wayland_client::QueueHandle<Self>,
-        _: wl_output::WlOutput,
-    ) {
-    }
+        self.lua.globals().set("CMD_TAGS", LuaNil)?;
+        self.lua.globals().set("CMD_OUTPUT", LuaNil)?;
 
-    fn output_destroyed(
-        &mut self,
-        _: &Connection,
-        _: &wayland_client::QueueHandle<Self>,
-        output: wl_output::WlOutput,
-    ) {
-        self.layouts.retain(|(o, _)| *o != output);
-    }
-}
-
-impl RiverLayoutHandler for State {
-    fn river_control_state(&mut self) -> &mut RiverLayoutState {
-        &mut self.river_layout_state
-    }
-
-    fn namespace_in_use(&mut self) {
-        panic!("Oh no... The namespace is in use!");
+        Ok(())
     }
 
     fn generate_layout(
@@ -101,24 +49,83 @@ impl RiverLayoutHandler for State {
         usable_width: u32,
         usable_height: u32,
         tags: u32,
-    ) -> GeneratedLayout {
-        self.lua
-            .generate_layout(tags, view_count, usable_width, usable_height)
-            .unwrap()
-    }
+        output: Option<&str>,
+    ) -> LuaResult<GeneratedLayout> {
+        let mut generated_layout = GeneratedLayout {
+            layout_name: "luatile".into(),
+            views: Vec::with_capacity(view_count as usize),
+        };
 
-    fn handle_user_cmd(&mut self, cmd: String, tags: u32) {
-        self.lua.handle_user_cmd(&cmd, tags).unwrap();
+        let args = self.lua.create_table()?;
+        args.set("tags", tags)?;
+        args.set("count", view_count)?;
+        args.set("width", usable_width)?;
+        args.set("height", usable_height)?;
+        args.set("output", output)?;
+
+        let layout = self
+            .lua
+            .globals()
+            .get::<_, LuaFunction>("handle_layout")?
+            .call::<_, LuaTable>(args)?;
+
+        for view_geometry in layout.sequence_values::<LuaTable>() {
+            let view_geometry = view_geometry?;
+            let table_len = view_geometry.len()?;
+            if table_len != 4 {
+                return Err(LuaError::RuntimeError(format!(
+                    "expected table of size 4, got {table_len}"
+                )));
+            }
+            let mut it = view_geometry.sequence_values::<i32>();
+            generated_layout.views.push(Rectangle {
+                x: it.next().unwrap()?,
+                y: it.next().unwrap()?,
+                width: it
+                    .next()
+                    .unwrap()?
+                    .try_into()
+                    .map_err(|_| LuaError::RuntimeError("invalid view width".into()))?,
+                height: it
+                    .next()
+                    .unwrap()?
+                    .try_into()
+                    .map_err(|_| LuaError::RuntimeError("invalid view height".into()))?,
+            });
+        }
+
+        Ok(generated_layout)
     }
 }
 
-delegate_output!(State);
-delegate_registry!(State);
-delegate_river_layout!(State);
+const DEFAULT_LAYOUT: &str = include_str!("../layout.lua");
 
-impl ProvidesRegistryState for State {
-    fn registry(&mut self) -> &mut RegistryState {
-        &mut self.registry_state
+struct LuaLayout {
+    lua: Lua,
+}
+
+impl LuaLayout {
+    fn new() -> Self {
+        let buf;
+        let layout_str = match lua_layout_path() {
+            Some(path) => {
+                buf = read_to_string(path).unwrap();
+                &buf
+            }
+            None => {
+                info!("layout.lua not found: using default layout");
+                DEFAULT_LAYOUT
+            }
+        };
+        let lua = Lua::new();
+        lua.load(layout_str).exec().unwrap();
+        Self { lua }
     }
-    registry_handlers![OutputState,];
+}
+
+fn lua_layout_path() -> Option<PathBuf> {
+    let mut path = config_dir()?;
+    path.push("river-luatile");
+    path.push("layout.lua");
+    path.exists().then_some(path)
 }
