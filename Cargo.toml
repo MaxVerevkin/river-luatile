@@ -1,7 +1,12 @@
 [package]
 name = "river-luatile"
+description = "Write your own river layout generator in lua "
+repository = "https://github.com/MaxVerevkin/river-luatile"
+readme = "../README.md"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+authors = ["MaxVerevkin <maxxverrr@gmail.com>"]
 
 [dependencies]
 log = "0.4"
