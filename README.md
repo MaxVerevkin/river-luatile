@@ -14,6 +14,10 @@ The layout namespace (for now) is always `luatile`.
 
 <https://aur.archlinux.org/packages/river-luatile-git>
 
+### NixOS
+
+Use the provided flake package or overlay.
+
 ### Manually from source
 
 ```sh
