@@ -14,10 +14,8 @@ The layout namespace (for now) is always `luatile`.
 
 <https://aur.archlinux.org/packages/river-luatile-git>
 
-### Manually from source
+### From source
 
 ```sh
-git clone https://github.com/MaxVerevkin/river-luatile
-cd river-luatile
-cargo install --path . --locked
+cargo install river-luatile --locked
 ```
