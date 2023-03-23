@@ -6,10 +6,11 @@ smart_gaps = false
 -- The most important function - the actual layout generator
 --
 -- The argument is a table with:
---  * Focused tags
---  * Window count
---  * Output width
---  * Output height
+--  * Focused tags (`args.tags`)
+--  * Window count (`args.count`)
+--  * Output width (`args.width`)
+--  * Output height (`args.height`)
+--  * Output name (`args.output`)
 --
 -- The return value must be a table with exactly `count` entries. Each entry is a table with four
 -- numbers:

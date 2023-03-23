@@ -31,7 +31,7 @@ impl Layout for LuaLayout {
 
     const NAMESPACE: &'static str = "luatile";
 
-    fn user_cmd(&mut self, cmd: String, tags: Option<u32>, output: Option<&str>) -> LuaResult<()> {
+    fn user_cmd(&mut self, cmd: String, tags: Option<u32>, output: &str) -> LuaResult<()> {
         self.lua.globals().set("CMD_TAGS", tags)?;
         self.lua.globals().set("CMD_OUTPUT", output)?;
 
@@ -49,7 +49,7 @@ impl Layout for LuaLayout {
         usable_width: u32,
         usable_height: u32,
         tags: u32,
-        output: Option<&str>,
+        output: &str,
     ) -> LuaResult<GeneratedLayout> {
         let mut generated_layout = GeneratedLayout {
             layout_name: "luatile".into(),

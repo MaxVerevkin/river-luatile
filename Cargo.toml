@@ -10,10 +10,10 @@ authors = ["MaxVerevkin <maxxverrr@gmail.com>"]
 
 [dependencies]
 log = "0.4"
-env_logger = "0.9"
+env_logger = "0.10"
 dirs-next = "2.0"
 mlua = { version = "0.8", features = ["luajit"] }
-river-layout-toolkit = { git = "https://github.com/MaxVerevkin/river-layout-toolkit", rev = "96fb8f7ed8b60221428b30313e866797cf3be06a" }
+river-layout-toolkit = "0.1"
 
 [profile.release]
 lto = "fat"
