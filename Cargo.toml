@@ -2,7 +2,7 @@
 name = "river-luatile"
 description = "Write your own river layout generator in lua"
 repository = "https://github.com/MaxVerevkin/river-luatile"
-readme = "../README.md"
+readme = "README.md"
 version = "0.1.1"
 edition = "2021"
 license = "GPL-3.0-only"
