@@ -53,6 +53,7 @@ end
 
 -- IMPORTANT: User commands send via `riverctl send-layout-cmd` are treated as lua code.
 -- Active tags are stored in `CMD_TAGS` global variable.
+-- Output name is stored in `CMD_OUTPUT` global variable.
 
 -- Here is an example of a function that can be mapped to some key
 -- Run with `riverctl send-layout-cmd luatile "toggle_gaps()"`
