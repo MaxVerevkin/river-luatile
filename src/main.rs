@@ -69,6 +69,14 @@ impl Layout for LuaLayout {
             .get::<_, LuaFunction>("handle_layout")?
             .call::<_, LuaTable>(args)?;
 
+        let layout_name = self
+            .lua
+            .globals()
+            .get::<_, LuaFunction>("handle_metadata")?
+            .call::<_, String>(output)?;
+
+        generated_layout.layout_name = layout_name;
+
         for view_geometry in layout.sequence_values::<LuaTable>() {
             let view_geometry = view_geometry?;
             let table_len = view_geometry.len()?;
