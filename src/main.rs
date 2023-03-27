@@ -67,15 +67,16 @@ impl Layout for LuaLayout {
             .lua
             .globals()
             .get::<_, LuaFunction>("handle_layout")?
-            .call::<_, LuaTable>(args)?;
+            .call::<_, LuaTable>(args.to_owned())?;
 
-        let layout_name = self
+        let metadata = self
             .lua
             .globals()
             .get::<_, LuaFunction>("handle_metadata")?
-            .call::<_, String>(output)?;
+            .call::<_, LuaTable>(args.to_owned())?;
 
-        generated_layout.layout_name = layout_name;
+        // No field `layout_name` on type `mlua::Table<' >` unknown field
+        generated_layout.layout_name = metadata.get("name")?;
 
         for view_geometry in layout.sequence_values::<LuaTable>() {
             let view_geometry = view_geometry?;
