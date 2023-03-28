@@ -67,7 +67,20 @@ impl Layout for LuaLayout {
             .lua
             .globals()
             .get::<_, LuaFunction>("handle_layout")?
-            .call::<_, LuaTable>(args)?;
+            .call::<_, LuaTable>(args.to_owned())?;
+
+        let metadata = self
+            .lua
+            .globals()
+            .get::<_, Option<LuaFunction>>("handle_metadata")?
+            .map(|f| f.call::<_, LuaTable>(args))
+            .transpose()?;
+
+        let name = metadata
+            .as_ref()
+            .and_then(|m| m.get::<_, String>("name").ok());
+
+        generated_layout.layout_name = name.unwrap_or("luatile".to_string());
 
         for view_geometry in layout.sequence_values::<LuaTable>() {
             let view_geometry = view_geometry?;
