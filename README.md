@@ -12,8 +12,10 @@ The layout must be located at `$XDG_CONFIG_HOME/river-luatile/layout.lua` or
 
 The layout namespace (for now) is always `luatile`.
 
-Your layout must at least implement the functions `handle_layout()` and
-`handle_metadata()`.
+Your layout must at least implement the function `handle_layout()` and
+optionally a function `handle_metadata()`, which will be used to query
+metadata about the layout. Currently, the layout name is the only metadata
+supported, see the example.
 
 ## Installation
 

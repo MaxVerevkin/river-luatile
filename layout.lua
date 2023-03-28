@@ -51,8 +51,9 @@ function handle_layout(args)
 	return retval
 end
 
--- This returns the metadata for the current layout. Currently only `name` is
--- supported, the name of the layout
+-- This optional function returns the metadata for the current layout.
+-- Currently only `name` is supported, the name of the layout. It get's passed
+-- the same `args` as handle_layout()
 function handle_metadata(args)
 	return { name = "rivertile-simple" }
 end
