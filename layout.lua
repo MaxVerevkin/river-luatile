@@ -51,6 +51,12 @@ function handle_layout(args)
 	return retval
 end
 
+-- This returns the metadata for the current layout. Currently only `name` is
+-- supported, the name of the layout
+function handle_metadata(args)
+	return { name = "rivertile-simple" }
+end
+
 -- IMPORTANT: User commands send via `riverctl send-layout-cmd` are treated as lua code.
 -- Active tags are stored in `CMD_TAGS` global variable.
 -- Output name is stored in `CMD_OUTPUT` global variable.
