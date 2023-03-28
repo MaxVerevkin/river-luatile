@@ -51,11 +51,6 @@ impl Layout for LuaLayout {
         tags: u32,
         output: &str,
     ) -> LuaResult<GeneratedLayout> {
-        let mut generated_layout = GeneratedLayout {
-            layout_name: "luatile".into(),
-            views: Vec::with_capacity(view_count as usize),
-        };
-
         let args = self.lua.create_table()?;
         args.set("tags", tags)?;
         args.set("count", view_count)?;
@@ -67,7 +62,7 @@ impl Layout for LuaLayout {
             .lua
             .globals()
             .get::<_, LuaFunction>("handle_layout")?
-            .call::<_, LuaTable>(args.to_owned())?;
+            .call::<_, LuaTable>(args.clone())?;
 
         let metadata = self
             .lua
@@ -80,7 +75,10 @@ impl Layout for LuaLayout {
             .as_ref()
             .and_then(|m| m.get::<_, String>("name").ok());
 
-        generated_layout.layout_name = name.unwrap_or("luatile".to_string());
+        let mut generated_layout = GeneratedLayout {
+            layout_name: name.unwrap_or_else(|| "luatile".to_string()),
+            views: Vec::with_capacity(view_count as usize),
+        };
 
         for view_geometry in layout.sequence_values::<LuaTable>() {
             let view_geometry = view_geometry?;
