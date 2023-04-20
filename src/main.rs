@@ -5,7 +5,7 @@
 #[macro_use]
 extern crate log;
 
-use dirs_next::config_dir;
+use dirs::config_dir;
 use mlua::prelude::*;
 use river_layout_toolkit::{run, GeneratedLayout, Layout, Rectangle};
 
