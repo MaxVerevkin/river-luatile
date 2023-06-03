@@ -19,9 +19,7 @@ supported, see the example.
 
 ## Installation
 
-### Arch/AUR
-
-<https://aur.archlinux.org/packages/river-luatile-git>
+[![Packaging status](https://repology.org/badge/vertical-allrepos/river-luatile.svg)](https://repology.org/project/river-luatile/versions)
 
 ### From source
 
