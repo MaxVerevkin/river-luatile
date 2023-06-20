@@ -1,7 +1,7 @@
 -- You can define your global state here
-main_ratio = 0.65
-gaps = 10
-smart_gaps = false
+local main_ratio = 0.65
+local gaps = 10
+local smart_gaps = false
 
 -- The most important function - the actual layout generator
 --
