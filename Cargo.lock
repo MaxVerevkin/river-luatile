@@ -310,10 +310,11 @@ checksum = "a5996294f19bd3aae0453a862ad728f60e6600695733dd5df01da90c54363a3c"
 
 [[package]]
 name = "river-layout-toolkit"
-version = "0.1.3"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "005e4aa12eb8660ca7a9105b68a61a44bb316104d2133ecdd2131cf3fa418962"
+checksum = "a7bd322da0212ac776c0096a3ff7727b4169eb4dac2dca21c6e12505b9dce8d3"
 dependencies = [
+ "log",
  "thiserror",
  "wayrs-client",
 ]
@@ -415,9 +416,9 @@ checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
 
 [[package]]
 name = "wayrs-client"
-version = "0.10.3"
+version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6df29eb1fab7b25c629f5e7c818e4509643102e1e909bdfcf4b342e0056ef552"
+checksum = "8efff4d6e2a63569d0c26cc6213523d5cf633abc5f43298265efddc4f084692b"
 dependencies = [
  "nix",
  "thiserror",
@@ -426,9 +427,9 @@ dependencies = [
 
 [[package]]
 name = "wayrs-scanner"
-version = "0.10.0"
+version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b66f2d9f749863856126fd50440d008bf62031243665df9d80871039316bde61"
+checksum = "4a9a9c400010b242c478a119bffb9cacc02ddffac2e48e1232c2e16afab71691"
 dependencies = [
  "convert_case",
  "proc-macro2",

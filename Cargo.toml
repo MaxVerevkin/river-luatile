@@ -13,7 +13,7 @@ log = "0.4"
 env_logger = "0.10"
 dirs = "5.0"
 mlua = { version = "0.8", features = ["luajit"] }
-river-layout-toolkit = "0.1"
+river-layout-toolkit = "0.1.4"
 
 [profile.release]
 lto = "fat"
