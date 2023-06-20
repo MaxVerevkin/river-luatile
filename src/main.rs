@@ -16,7 +16,14 @@ use std::process::ExitCode;
 fn main() -> ExitCode {
     env_logger::init();
 
-    let lua = LuaLayout::new();
+    let lua = match LuaLayout::new() {
+        Ok(lua) => lua,
+        Err(err) => {
+            error!("{err}");
+            return ExitCode::FAILURE;
+        }
+    };
+
     match run(lua) {
         Ok(()) => unreachable!(),
         Err(err) => {
@@ -116,7 +123,7 @@ struct LuaLayout {
 }
 
 impl LuaLayout {
-    fn new() -> Self {
+    fn new() -> LuaResult<Self> {
         let buf;
         let layout_str = match lua_layout_path() {
             Some(path) => {
@@ -129,8 +136,8 @@ impl LuaLayout {
             }
         };
         let lua = Lua::new();
-        lua.load(layout_str).exec().unwrap();
-        Self { lua }
+        lua.load(layout_str).exec()?;
+        Ok(Self { lua })
     }
 }
 
