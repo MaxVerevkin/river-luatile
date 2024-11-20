@@ -9,8 +9,7 @@ local last_border_width = -1
 function handle_layout(args)
     local retval = {}
 
--- Smart borders: only draw borders if there is more than one client
---------------------------------------------------------------------
+    -- Smart borders: only draw borders if there is more than one client
     local new_border_width = (args.count == 1) and 0 or border_width
     if new_border_width ~= last_border_width then
         os.execute("riverctl border-width " .. new_border_width) 
@@ -23,12 +22,9 @@ function handle_layout(args)
     elseif args.count > 1 then
         local main_w = math.floor((args.width - gaps * 3) * main_ratio)
         local side_w = (args.width - gaps * 3) - main_w
-
         local main_h = math.floor(args.height - gaps * 2)
         local side_h = math.floor((args.height - gaps) / (args.count - 1) - gaps)
         local side_h_rem = (args.height - gaps) % (args.count - 1)  -- remainder for side height
-
-        -- Main window
         table.insert(retval, {
             gaps,
             gaps,
