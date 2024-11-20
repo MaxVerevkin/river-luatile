@@ -16,7 +16,7 @@ function handle_layout(args)
         last_border_width = new_border_width
     end
 
-    -- Layout logic with adjustments to remove gaps at the top of the first and bottom of the last side windows
+    -- Layout logic with adjustments to remove gaps in side windows
     if args.count == 1 then
         table.insert(retval, { gaps, gaps, args.width - gaps * 2, args.height - gaps * 2 })
     elseif args.count > 1 then
@@ -24,7 +24,7 @@ function handle_layout(args)
         local side_w = (args.width - gaps * 3) - main_w
         local main_h = math.floor(args.height - gaps * 2)
         local side_h = math.floor((args.height - gaps) / (args.count - 1) - gaps)
-        local side_h_rem = (args.height - gaps) % (args.count - 1)  -- remainder for side height
+        local side_h_rem = (args.height - gaps) % (args.count - 1)
         table.insert(retval, {
             gaps,
             gaps,
@@ -38,7 +38,7 @@ function handle_layout(args)
                 main_w,
                 gaps + i * (side_h + gaps),
                 side_w,
-                side_h + side_h_rem,  -- Use adjusted height for side windows
+                side_h + side_h_rem,
             })
         end
     end
