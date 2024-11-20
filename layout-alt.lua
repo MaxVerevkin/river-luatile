@@ -37,11 +37,6 @@ function handle_layout(args)
             -- Adjust the vertical position for side windows
             local y_offset = gaps + i * (side_h + gaps)
 
-            -- For the first side window, remove the gap at the top
-            if i == 0 then
-                y_offset = i * side_h  -- No extra gap at the top for the first window
-            end
-
             -- For the last side window, adjust the height to avoid excess space
             local adjusted_height = side_h + (i == 0 and side_h_rem or 0)
             if i == args.count - 2 then
@@ -49,7 +44,7 @@ function handle_layout(args)
             end
 
             table.insert(retval, {
-                main_w + gaps * 2,
+                main_w,
                 y_offset,
                 side_w,
                 adjusted_height,  -- Use adjusted height for side windows
