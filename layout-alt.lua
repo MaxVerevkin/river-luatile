@@ -34,20 +34,11 @@ function handle_layout(args)
 
         -- Side windows
         for i = 0, (args.count - 2) do
-            -- Adjust the vertical position for side windows
-            local y_offset = gaps + i * (side_h + gaps)
-
-            -- For the last side window, adjust the height to avoid excess space
-            local adjusted_height = side_h + (i == 0 and side_h_rem or 0)
-            if i == args.count - 2 then
-                adjusted_height = side_h + side_h_rem  -- Ensure the last side window doesn't leave space at the bottom
-            end
-
             table.insert(retval, {
                 main_w,
-                y_offset,
+                gaps + i * (side_h + gaps),,
                 side_w,
-                adjusted_height,  -- Use adjusted height for side windows
+                side_h + side_h_rem,  -- Use adjusted height for side windows
             })
         end
     end
