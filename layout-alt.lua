@@ -33,7 +33,7 @@ function handle_layout(args)
         })
         for i = 0, (args.count - 2) do
             table.insert(retval, {
-                main_w,
+                main_w + gaps * 2,
                 gaps + i * (side_h + gaps),
                 side_w,
                 side_h + side_h_rem,
