@@ -36,7 +36,7 @@ function handle_layout(args)
         for i = 0, (args.count - 2) do
             table.insert(retval, {
                 main_w,
-                gaps + i * (side_h + gaps),,
+                gaps + i * (side_h + gaps),
                 side_w,
                 side_h + side_h_rem,  -- Use adjusted height for side windows
             })
