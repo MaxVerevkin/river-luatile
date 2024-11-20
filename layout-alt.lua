@@ -31,8 +31,6 @@ function handle_layout(args)
 	   main_w,
 	   main_h,
         })
-
-        -- Side windows
         for i = 0, (args.count - 2) do
             table.insert(retval, {
                 main_w,
