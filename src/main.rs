@@ -5,7 +5,6 @@
 #[macro_use]
 extern crate log;
 
-use dirs::config_dir;
 use mlua::prelude::*;
 use river_layout_toolkit::{run, GeneratedLayout, Layout, Rectangle};
 
@@ -146,4 +145,18 @@ fn lua_layout_path() -> Option<PathBuf> {
     path.push("river-luatile");
     path.push("layout.lua");
     path.exists().then_some(path)
+}
+
+fn config_dir() -> Option<PathBuf> {
+    if let Some(xdg) = std::env::var_os("XDG_CONFIG_HOME") {
+        return Some(xdg.into());
+    }
+
+    #[allow(deprecated)] // Don't care about windows
+    if let Some(mut path) = std::env::home_dir() {
+        path.push(".config");
+        return Some(path);
+    }
+
+    None
 }
