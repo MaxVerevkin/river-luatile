@@ -67,19 +67,17 @@ impl Layout for LuaLayout {
         let layout = self
             .lua
             .globals()
-            .get::<_, LuaFunction>("handle_layout")?
-            .call::<_, LuaTable>(args.clone())?;
+            .get::<LuaFunction>("handle_layout")?
+            .call::<LuaTable>(args.clone())?;
 
         let metadata = self
             .lua
             .globals()
-            .get::<_, Option<LuaFunction>>("handle_metadata")?
-            .map(|f| f.call::<_, LuaTable>(args))
+            .get::<Option<LuaFunction>>("handle_metadata")?
+            .map(|f| f.call::<LuaTable>(args))
             .transpose()?;
 
-        let name = metadata
-            .as_ref()
-            .and_then(|m| m.get::<_, String>("name").ok());
+        let name = metadata.as_ref().and_then(|m| m.get::<String>("name").ok());
 
         let mut generated_layout = GeneratedLayout {
             layout_name: name.unwrap_or_else(|| "luatile".to_string()),
